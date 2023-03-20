@@ -1,0 +1,437 @@
+import cv2
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import pyplot as plt
+
+
+imagename = "cv.jpg"
+
+# read the image data using PIL
+image = Image.open(imagename)
+info_dict = {
+    "Filename": image.filename,
+    "Image Size": image.size,
+    "Image Height": image.height,
+    "Image Width": image.width,
+    "Image Format": image.format,
+    "Image Mode": image.mode,
+    "Image is Animated": getattr(image, "is_animated", False),
+    "Frames in Image": getattr(image, "n_frames", 1)
+}
+
+for label,value in info_dict.items():
+    print(f"{label:25}: {value}")
+
+**Inputs percentage and image, and returns the image by adding white/gray/black border. Border size should be according to the percentage of width and height.**
+
+def image_border(img, per):
+    height = int(img.shape[0] * (per/100))
+    width = int(img.shape[1] * (per/100))
+    
+    #black border
+    black = cv2.copyMakeBorder(src=img, top=width, bottom=width, left=height, right=height, borderType=cv2.BORDER_CONSTANT,
+                                        value=[0, 0, 0]) 
+    black = cv2.cvtColor(black, cv2.COLOR_BGR2RGB)
+    
+    
+    #white border
+    white = cv2.copyMakeBorder(src=img, top=width, bottom=width, left=height, right=height, borderType=cv2.BORDER_CONSTANT,
+                                        value=[255, 255, 255]) 
+    white = cv2.cvtColor(white, cv2.COLOR_BGR2RGB)
+    
+    #gray border
+    gray = cv2.copyMakeBorder(src=img, top=width, bottom=width, left=height, right=height, borderType=cv2.BORDER_CONSTANT,
+                                        value=[128, 128, 128]) 
+    gray = cv2.cvtColor(gray, cv2.COLOR_BGR2RGB)
+    
+    
+    display(Image.fromarray(black))
+    display(Image.fromarray(white))
+    display(Image.fromarray(gray))
+    
+    
+    
+    
+    
+img_path = "cv.jpg"
+img = cv2.imread(img_path)
+per = 30
+image_border(img,per)
+#display(Image.fromarray(image_border(img,per)))
+
+
+
+**Resize**
+
+def resize_img(img):
+    
+    width = 1024
+    ar = int(img.shape[1]/img.shape[0])
+    dim = (width, ar)
+
+    resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+    return resized
+    
+img_path = "cv.jpg"
+img = cv2.imread(img_path)
+display(Image.fromarray(resize_img(img)))
+
+**Inputs an image and multiplying factor, and returns the resized image according to multiplying factor.**
+
+def resize_img(img, mf):
+    
+    width = 1024
+    ar = int((img.shape[1]/img.shape[0])*mf)
+    dim = (width, ar)
+
+    resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+    return resized
+    
+img_path = "cv.jpg"
+img = cv2.imread(img_path)
+mf=150
+display(Image.fromarray(resize_img(img,mf)))
+
+**Inputs an image and add noice on it**
+
+
+
+def add_noise(img):
+    gauss = np.random.normal(0,1,img.size)
+    gauss = gauss.reshape(img.shape[0],img.shape[1],img.shape[2]).astype('uint8')
+    img_gauss = cv2.add(img,gauss)
+    display(Image.fromarray(img_gauss))
+    
+add_noise(img)
+
+**Inputs an image and add blur on it**
+
+
+
+def blur_image(img):
+    gausBlur = cv2.GaussianBlur(img, (5,5),0) 
+    display(Image.fromarray(gausBlur))
+blur_image(img)
+
+**Inputs an image and change brightness of that image**
+
+
+
+def bright_image(img):
+    alpha = 1.5 # Contrast control
+    beta = 10 # Brightness control
+    bright = cv2.convertScaleAbs(img, alpha=alpha, beta=beta)
+    display(Image.fromarray(bright))
+bright_image(img)
+    
+
+**Inputs an image, calculate histograms of that image and remove the pixels colors, whose frequency is less (grayscale)**
+
+
+
+### 
+def histogram(img):
+    color = ('b','g','r')
+    for i,col in enumerate(color):
+        histr = cv2.calcHist([img],[i],None,[256],[0,256])
+        plt.plot(histr,color = col)
+        plt.xlim([0,256])
+        
+histogram(img)
+
+**Read and try to implement following
+Edge detection (Canny edge detection, Sobel edge detection, and Laplacian of Gaussian (LoG) edge detection)**
+
+
+
+
+
+
+def edge_detection(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, threshold1=30, threshold2=100)
+    display(Image.fromarray(edges))
+edge_detection(img)
+        
+
+**Feature Extraction Techniques (SIFT, SURF, and ORB etc)**
+
+
+
+import cv2 
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+#reading image
+#img1 = cv2.imread()  
+gray1 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+#keypoints
+sift = cv2.xfeatures2d.SIFT_create()
+keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
+
+img_1 = cv2.drawKeypoints(gray1,keypoints_1,img)
+plt.imshow(img_1)
+
+**Hough transform**
+
+
+
+# import required libraries
+import cv2
+import numpy as np
+from google.colab.patches import cv2_imshow
+
+# read the input image
+#img = cv2.imread('/content/PUPPY.jpg')
+
+# convert the input image to grayscale image
+gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+# find the edges using Canny edge detector
+edges = cv2.Canny(gray,50,200,apertureSize = 3)
+minLineLength = 10
+maxLineGap = 5
+
+# apply probabilistic Hough transform
+lines = cv2.HoughLinesP(edges,1,np.pi/180,50,minLineLength,maxLineGap)
+for line in lines:
+   for x1,y1,x2,y2 in line:
+      cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+cv2_imshow(img)
+cv2_imshow(edges)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+**Fourier transform**
+
+
+
+import numpy as np
+import cv2 as cv
+from matplotlib import pyplot as plt
+img = cv.imread('/content/cv.jpg', cv.IMREAD_GRAYSCALE)
+assert img is not None, "file could not be read, check with os.path.exists()"
+dft = cv.dft(np.float32(img),flags = cv.DFT_COMPLEX_OUTPUT)
+dft_shift = np.fft.fftshift(dft)
+magnitude_spectrum = 20*np.log(cv.magnitude(dft_shift[:,:,0],dft_shift[:,:,1]))
+plt.subplot(121),plt.imshow(img, cmap = 'gray')
+plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+plt.subplot(122),plt.imshow(magnitude_spectrum, cmap = 'gray')
+plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
+plt.show()
+
+**Histograms**
+
+
+
+import cv2
+import matplotlib.pyplot as plt
+
+# Load image
+img = cv2.imread('cv.jpg')
+
+# Convert image to grayscale
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Calculate histogram
+hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+
+# Plot histogram
+plt.plot(hist)
+plt.xlim([0, 256])
+plt.xlabel('Pixel Value')
+plt.ylabel('Frequency')
+plt.show()
+
+
+**Morphology**
+
+kernel = np.ones((20, 20), np.uint8)
+
+
+erosion = cv2.erode(img, kernel, iterations=1)
+dilation = cv2.dilate(img, kernel, iterations=1)
+
+opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+
+fig, ax = plt.subplots(2, 2, figsize=(12, 5))
+ax[0][0].imshow(cv2.cvtColor(erosion, cv2.COLOR_BGR2RGB))
+ax[0][0].title.set_text('Erosion')
+
+ax[0][1].imshow(cv2.cvtColor(dilation, cv2.COLOR_BGR2RGB))
+ax[0][1].title.set_text('Dilation')
+
+ax[1][0].imshow(cv2.cvtColor(opening, cv2.COLOR_BGR2RGB))
+ax[1][0].title.set_text('Opening')
+
+ax[1][1].imshow(cv2.cvtColor(closing, cv2.COLOR_BGR2RGB))
+ax[1][1].title.set_text('Closing')
+plt.tight_layout()
+
+
+
+**Optical flow**
+
+
+
+import numpy as np
+import cv2 as cv
+cap = cv.VideoCapture(cv.samples.findFile("/content/cv.jpg"))
+ret, frame1 = cap.read()
+prvs = cv.cvtColor(frame1, cv.COLOR_BGR2GRAY)
+hsv = np.zeros_like(frame1)
+hsv[..., 1] = 255
+while(1):
+    ret, frame2 = cap.read()
+    if not ret:
+        print('No frames grabbed!')
+        break
+    next = cv.cvtColor(frame2, cv.COLOR_BGR2GRAY)
+    flow = cv.calcOpticalFlowFarneback(prvs, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    mag, ang = cv.cartToPolar(flow[..., 0], flow[..., 1])
+    hsv[..., 0] = ang*180/np.pi/2
+    hsv[..., 2] = cv.normalize(mag, None, 0, 255, cv.NORM_MINMAX)
+    bgr = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+    cv.imshow('frame2', bgr)
+    k = cv.waitKey(30) & 0xff
+    if k == 27:
+        break
+    elif k == ord('s'):
+        cv.imwrite('opticalfb.png', frame2)
+        cv.imwrite('opticalhsv.png', bgr)
+    prvs = next
+cv.destroyAllWindows()
+
+**Contour detection**
+
+
+
+import cv2
+import numpy as np
+from google.colab.patches import cv2_imshow
+  
+# Let's load a simple image with 3 black squares
+image = cv2.imread('/content/cv.jpg')
+cv2.waitKey(0)
+  
+# Grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+  
+# Find Canny edges
+edged = cv2.Canny(gray, 30, 200)
+cv2.waitKey(0)
+  
+# Finding Contours
+# Use a copy of the image e.g. edged.copy()
+# since findContours alters the image
+contours, hierarchy = cv2.findContours(edged, 
+    cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+  
+cv2_imshow(edged)
+cv2.waitKey(0)
+  
+print("Number of Contours found = " + str(len(contours)))
+  
+# Draw all contours
+# -1 signifies drawing all contours
+cv2.drawContours(image, contours, -1, (0, 255, 0), 3)
+  
+cv2_imshow(image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+**Gaussian Blur filter with kernel size of 5x5.**
+
+
+
+import cv2
+from google.colab.patches import cv2_imshow
+
+# Load image
+img = cv2.imread('/content/cv.jpg')
+
+# Apply Gaussian blur filter with kernel size of 5x5
+blur = cv2.GaussianBlur(img, (5, 5), 0)
+
+# Display original and blurred images
+cv2_imshow(img)
+cv2_imshow(blur)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+**Median Blur filter with kernel size of 5x5.**
+
+
+
+import cv2
+from google.colab.patches import cv2_imshow
+
+# Load image
+img = cv2.imread('/content/cv.jpg')
+
+# Apply Median Blur filter with kernel size of 5x5
+img_median = cv2.medianBlur(img, 5)
+
+# Display original and filtered image
+cv2_imshow(img)
+cv2_imshow(img_median)
+
+# Wait for user to close windows
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+**Bilateral Filter with diameter of 9, sigmaColor of 75 and sigmaSpace of 75.**
+
+
+
+import cv2
+from google.colab.patches import cv2_imshow
+
+# Load the image
+img = cv2.imread('/content/cv.jpg')
+
+# Convert the image to grayscale if necessary
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Create a copy of the grayscale image
+filtered = gray.copy()
+
+# Define the filter parameters
+diameter = 9
+sigmaColor = 75
+sigmaSpace = 75
+
+# Apply the bilateral filter to each pixel in the image
+filtered = cv2.bilateralFilter(filtered, diameter, sigmaColor, sigmaSpace)
+
+# Display the filtered image
+cv2_imshow(filtered)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+**Thresholding with cv2.ADAPTIVE_THRESH_MEAN_C with blockSize of 11 and cv2.THRESH_BINARY.**
+
+
+
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+
+# Apply adaptive thresholding
+mask = cv2.adaptiveThreshold(blurred, 
+                              255, 
+                              cv2.ADAPTIVE_THRESH_MEAN_C, 
+                              cv2.THRESH_BINARY, 
+                              31, 
+                              10)
+
+# Plot results
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+ax[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+ax[1].imshow(cv2.cvtColor(mask, cv2.COLOR_BGR2RGB))
+plt.tight_layout()
